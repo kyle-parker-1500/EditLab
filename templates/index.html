@@ -13,9 +13,30 @@
         <h5 class="card-title">Upload an Image</h5>
         <p class="card-text">Upload an image to apply filters to.</p>
         <input class="m-auto my-2" type="file" id="filter_img" name="filter_img" accept=".png, .jpg, .jpeg" />
-        <a href="#" class="btn btn-primary">Submit</a>
+
+        <!-- Show Image Button -->
+        <a href="#" id="showImgBtn" class="btn btn-primary">Submit</a>
+
+        <!-- Test Image Preview -->
+        <img id="preview" src="" alt="uploaded image" class="img-fluid mt-3" style="display:none;"/>
       </div>
     </div>
+    <script>
+    document.getElementById('showImgBtn').addEventListener('click', () => {
+      const fileInput = document.getElementById('filter_img');
+      const preview = document.getElementById('preview');
+
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    });
+    </script>
     {{ bootstrap.load_js() }}
   </body>
 </html>
