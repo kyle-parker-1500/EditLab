@@ -8,8 +8,14 @@
     {{ bootstrap.load_css() }}
   </head>
   <body>
-    <h1>Upload an Image</h1>
-    <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
+    <div class="card m-auto" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title">Upload an Image</h5>
+        <p class="card-text">Upload an image to apply filters to.</p>
+        <input class="m-auto my-2" type="file" id="filter_img" name="filter_img" accept=".png, .jpg, .jpeg" />
+        <a href="#" class="btn btn-primary">Submit</a>
+      </div>
+    </div>
     {{ bootstrap.load_js() }}
   </body>
 </html>
