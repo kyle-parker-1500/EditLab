@@ -39,7 +39,7 @@ def apply_effect(image_path, effect_name):
     url = "https://api.picsart.io/tools/1.0/effects"
 
     headers = {
-        "Picsart-API-Key": API_KEY,
+        "X-Picsart-API-Key": API_KEY,
         "accept": "application/json"
     }
 
