@@ -8,5 +8,5 @@ bootstrap = Bootstrap5(app)
 
 # route decorator binds a function to a URL
 @app.route('/')
-def hello():
+def home():
     return render_template('index.html')
