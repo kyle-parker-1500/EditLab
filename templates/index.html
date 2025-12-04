@@ -5,22 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EditLab</title>
     <link href="css/style.css" rel="stylesheet">
+    <style>
+    </style>
     {{ bootstrap.load_css() }}
   </head>
   <body>
-    <div class="card m-auto" style="width: 18rem;">
-      <div class="card-body">
-        <h5 class="card-title">Upload an Image</h5>
-        <p class="card-text">Upload an image to apply filters to.</p>
-        <input class="m-auto my-2" type="file" id="filter_img" name="filter_img" accept=".png, .jpg, .jpeg" />
+    <div class="sidebar">
+      <h2>EditLab</h2>
 
-        <!-- Show Image Button -->
-        <a href="#" id="showImgBtn" class="btn btn-primary">Submit</a>
+      <!-- Upload Image Tab -->
+      <label>
+        Upload Image
+        <input type="file" id="imageInput" accept=".png, .jpeg, .jpg" />
+      </label>
 
-        <!-- Test Image Preview -->
-        <img id="preview" src="" alt="uploaded image" class="img-fluid mt-3" style="display:none;"/>
-      </div>
+      <!-- Brush Size Input -->
+      <label>
+        Brush Size
+        <input type="range" id="brushSize" min="1" max="20" value="5" />
+      </label>
+
+      <!-- Brush Color Input -->
+      <label>
+        Brush Color
+        <input type="color" id="brushColor" value="#ff0000" /> 
+      </label>
+
+      <!-- Brush Buttons -->
+      <button class="brushTool">Brush</button>
+      <button class="eraserTool">Eraser</button>
+      <button class="clearCanvas">Clear</button>
+
+      <hr />
+
+      <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
+      <button class="resetImage">Reset Image</button>
+
+      <hr />
+
+      <!-- Add image preview (don't use api token) -->
+      
+      <button class="download">Download</button>
     </div>
+
+    <!-- Drawing Canvas -->
+    <div class="canvas-wrapper">
+      <canvas id="canvas" width="800" height="600"></canvas>
+    </div>
+    
     <script>
     document.getElementById('showImgBtn').addEventListener('click', () => {
       // get file
