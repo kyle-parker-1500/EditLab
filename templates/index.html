@@ -54,21 +54,58 @@
     </div>
     
     <script>
-    document.getElementById('showImgBtn').addEventListener('click', () => {
-      // get file
-      const fileInput = document.getElementById('filter_img');
-      const preview = document.getElementById('preview');
+      // get elements
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
 
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
+      const fileInput = document.getElementById("imageInput");
+      const brushSizeSlider = document.getElementById("brushSize");
+      const brushColorInput = document.getElementById("brushColor");
+      const brushButton = document.getElementById("brushTool");
+      const eraserSwitchButton = document.getElementById("eraserTool");
+      const clearCanvasButton = document.getElementById("clearCanvas");
+      const downloadImageButton = document.getElementById("download");
 
-        reader.onload = (e) => {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
+      let drawing = false;
+      let currentTool = "brush"; // can be brush || eraser
+      let originalImageData = null; 
+
+      function getCanvasPosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x:
+            (event.clientX || event.touches?.[0]?.clientX) - rect.left,
+          y:
+            (event.clientY || event.touches?.[0]?.clientY) - rect.top;
         };
-        reader.readAsDataURL(fileInput.files[0]);
       }
-    });
+
+      function startDrawing(event) {
+        // update drawing boolean
+        drawing = true;
+
+        const pos = getCanvasPosition(event);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      }
+
+      function draw(event) {
+        if (!drawing) return;
+
+        const pos = getCanvasPosition(event);
+
+        ctx.lineWidth = brushSizeSlider.value;
+        ctx.lineCap = "round";
+
+        if (currentTool === "eraser") {
+          ctx.strokeStyle = "ffffff";
+        } else {
+          ctx.strokeStyle = brushColorInput.value;
+        }
+
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      }
     </script>
     {{ bootstrap.load_js() }}
   </body>
