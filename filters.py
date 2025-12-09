@@ -15,7 +15,6 @@ EFFECT_LIST = [
     "brl1", "brnz1", "brnz2", "brnz3", "brnz4",
     "cyber1", "cyber2", "dodger", "fattal2",
     "food1", "food2",
-    "icy1", "icy2", "icy3",
     "light1", "light2", "light3", "light4", "light5",
     "light6", "light7", "light8", "light9", "light10",
     "light11", "light12", "light13", "light14", "light15",
@@ -27,7 +26,6 @@ EFFECT_LIST = [
     "sft1", "sft2", "sft3", "sft4",
     "shadow1", "shadow2",
     "sketch1", "sketch2", "sketch3",
-    "sketcher1", "sketcher2",
     "spc1", "tl1", "tl2",
     "urban1", "urban2",
     "water1", "water2",
@@ -86,7 +84,7 @@ class MyWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Picsart API Filter Demo")
+        self.setWindowTitle("Picsart Filter Selection")
         self.resize(400, 260)
 
         self.image_path = None
