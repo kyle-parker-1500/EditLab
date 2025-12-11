@@ -65,49 +65,68 @@
     }
     .brushColor {
       margin-top: 1%;
+      vertical-align: baseline;
     }
-    
+    /* Title */
+    .title {
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+      font-size: 50px;
+      text-align: center;
+    }
+    /* Upload Image Card */
+    .card {
+      margin: 2rem;
+    } 
     </style>
     {{ bootstrap.load_css() }}
   </head>
   <body>
     <div class="sidebar">
-      <h2>EditLab</h2>
+      <h2 class="title">EditLab</h2>
+            
+      <!-- Add image preview (don't use api token) -->
+      <!-- Upload Image Card -->
+      <div class="card" style="width: 18rem;">
+        <img src="..." class="card-img-top" alt="Uploaded image preview" />
+        <div class="card-body">
+          <h5 class="card-title">Upload Image:</h5>
+          
+          <!-- Choose File Input -->
+          <input type="file" id="imageInput" accept=".png, .jpeg, .jpg" />
 
-      <!-- Upload Image Tab -->
-      <label>
-        Upload Image
-        <input type="file" id="imageInput" accept=".png, .jpeg, .jpg" />
-      </label>
-      
+        </div>
+      </div> 
+
       <hr />
 
-      <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
-
-      <!-- Add image preview (don't use api token) -->
+      <button class="brushButton">Brush</button>
+      <button class="eraserButton">Eraser</button>
+      <button class="clearButton">Clear Brush</button>
 
       <!-- Brush Tools -->
       <div class="brushTools">
         
         <div class="verticalTools">
+
+          <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
+          <label for="filters">Choose a filter:</label>
+          <select name="Filters" id="filters">
+            <option value="">--Please choose a filter--</option>
+          </select>
+
           <!-- Brush Size Input -->
           <label>
-            Brush Size
+            Brush Size:
             <input type="range" id="brushSize" min="1" max="21" step="5" value="5" />
           </label>
-          <br />
+
           <!-- Brush Color Input -->
           <label>
-            Brush Color
+            Brush Color:
             <input type="color" id="brushColor" value="#000000" /> 
           </label>
         </div>
-
-        <button class="brushButton">Brush</button>
       </div>
-
-      <button class="eraserButton">Eraser</button>
-      <button class="clearButton">Clear Brush</button>
 
       <!-- Drawing Canvas -->
       <div class="canvas-wrapper">
@@ -127,65 +146,15 @@
     
     <script type="text/javascript">
     // elements
-    let uploadedImage = document.getElementById("imageInput");
-    let brushSize = document.getElementById("brushSize");
-    let brushColor = document.getElementById("brushColor");
-
-    // drawing code on canvas
-    // credit for this code: https://stackoverflow.com/questions/2368784/draw-on-html5-canvas-using-a-mouse
-    function drawing() {
-      var canvas = document.getElementById("canvasImage");
-      document.body.appendChild(canvas);
-      
-      document.body.style.margin = 0;
-      canvas.style.position = 'fixed';
-      
-      // get 2d content from canvas
-      var ctx = canvas.getContext("2d");
-      resize();
-      
-      // last known position (try removing this for an experiment)
-      var pos = { x: 0, y: 0 };
-      
-      // main access stuff
-      window.addEventListener('resize', resize);
-      document.addEventListener('mousemove', draw);
-      document.addEventListener('mousedown', setPosition);
-      document.addEventListener('mouseenter', setPosition);
-      
-    }
+    let imageInput = document.querySelector("#imageInput");
+    let previewImage = document.getElementById("card-img-top");
     
-    // new pos from mouse event
-    function setPosition(e) {
-      pos.x = e.clientX;
-      pos.y = e.clientY;
-    }
-    
-    // resize canvas
-    function resize() {
-      ctx.canvas.width = window.innerWidth;
-      ctx.canvas.height = window.innerHeight;
-    }
-
-    // drawing
-    function draw(e) {
-      // mouse left button must be pressed
-      if (e.buttons !== 1) return;
-    
-      ctx.beginPath(); // begin drawing
-
-      // todo: brushSize.value is my code -> may cause error 
-      ctx.lineWidth = brushSize.value;
-      ctx.lineCap = 'round';
-      // todo: brushColor.value is my code -> may cause error
-      ctx.strokeStyle = brushColor.value;
-      
-      ctx.moveTo(pos.x, pos.y);
-      setPosition(e);
-      ctx.lineTo(pos.x, pos.y);
-
-      ctx.stroke();
-    }
+    /* Displaying Preview of Image */
+    imageInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      const localUrl = URL.createObjectURL(file);
+      previewImage.src = localUrl;
+    });
 
     </script>
     
