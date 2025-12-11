@@ -94,6 +94,7 @@
           <!-- Choose File Input -->
           <input type="file" id="imageInput" accept=".png, .jpeg, .jpg" />
 
+          <a href="#" class="btn btn-primary" id="uploadToCanvasButton">Go somewhere</a>
         </div>
       </div> 
 
@@ -147,13 +148,24 @@
     <script type="text/javascript">
     // elements
     let imageInput = document.querySelector("#imageInput");
-    let previewImage = document.getElementById("card-img-top");
+    let previewImage = document.querySelector(".card-img-top");
+    let uploadCanvasButton = document.querySelector("#uploadImageButton");
+    let canvas = document.querySelector("#canvasImage");
+    
+    let currentFileUrl;
     
     /* Displaying Preview of Image */
     imageInput.addEventListener('change', function(event) {
       const file = event.target.files[0];
       const localUrl = URL.createObjectURL(file);
+      
+      currentFileUrl = localUrl;
+
       previewImage.src = localUrl;
+    });
+    
+    uploadCanvasButton.addEventListener('click', function(event) {
+      canvas.background = currentFileUrl;
     });
 
     </script>
