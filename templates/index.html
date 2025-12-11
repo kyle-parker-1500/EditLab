@@ -36,6 +36,9 @@
       <button class="eraserTool">Eraser</button>
       <button class="clearCanvas">Clear</button>
 
+      <!-- Export Button -->
+      <button class="exportButton">Export</button>
+
       <hr />
 
       <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
@@ -52,61 +55,22 @@
     <div class="canvas-wrapper">
       <canvas id="canvas" width="800" height="600"></canvas>
     </div>
-    
     <script>
-      // get elements
-      const canvas = document.getElementById("canvas");
-      const ctx = canvas.getContext("2d");
+      // buttons
 
-      const fileInput = document.getElementById("imageInput");
-      const brushSizeSlider = document.getElementById("brushSize");
-      const brushColorInput = document.getElementById("brushColor");
-      const brushButton = document.getElementById("brushTool");
-      const eraserSwitchButton = document.getElementById("eraserTool");
-      const clearCanvasButton = document.getElementById("clearCanvas");
-      const downloadImageButton = document.getElementById("download");
+      // canvas 
+      const brushTool = document.querySelector(".brushTool");
+      const eraserTool = document.querySelector(".eraserTool");
+      const clearCanvas = document.querySelector(".clearCanvas");
 
-      let drawing = false;
-      let currentTool = "brush"; // can be brush || eraser
-      let originalImageData = null; 
+      // export
+      const exportButton = document.querySelector(".exportButton");
 
-      function getCanvasPosition(event) {
-        const rect = canvas.getBoundingClientRect();
-        return {
-          x:
-            (event.clientX || event.touches?.[0]?.clientX) - rect.left,
-          y:
-            (event.clientY || event.touches?.[0]?.clientY) - rect.top;
-        };
-      }
-
-      function startDrawing(event) {
-        // update drawing boolean
-        drawing = true;
-
-        const pos = getCanvasPosition(event);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      }
-
-      function draw(event) {
-        if (!drawing) return;
-
-        const pos = getCanvasPosition(event);
-
-        ctx.lineWidth = brushSizeSlider.value;
-        ctx.lineCap = "round";
-
-        if (currentTool === "eraser") {
-          ctx.strokeStyle = "ffffff";
-        } else {
-          ctx.strokeStyle = brushColorInput.value;
-        }
-
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-      }
+      exportButton.addEventListener("click", () => {
+        console.log("Button clicked!");
+      });
     </script>
+    
     {{ bootstrap.load_js() }}
   </body>
 </html>

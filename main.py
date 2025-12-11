@@ -10,3 +10,7 @@ bootstrap = Bootstrap5(app)
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/import_image')
+def images():
+    return render_template('inout.html')
