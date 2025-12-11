@@ -6,6 +6,60 @@
     <title>EditLab</title>
     <link href="css/style.css" rel="stylesheet">
     <style>
+    /*
+    Colors:
+    Primary: #17BEBB
+    Shadows: #14453D / background
+    Highlights: #CD5334
+    2nd Highlights: #EDB88B
+    */
+    canvas {
+      margin-top: 20px;
+      margin: 10px;
+      background-color: white;
+      border: 5px solid #231942;
+      border-radius: 1rem;
+    }
+    /* Download Button */
+    .download {
+      border-radius: 5px;
+      margin: 10px;
+      border: 0;
+      line-height: 2.5;
+      padding: 0 20px;
+      font-size: 1rem;
+      text-align: center;
+      color: white;
+      text-shadow: 1px 1px 1px black;
+      background-color: #17BEBB;
+    }
+    .download:hover {
+      background-color: #14453D;
+    }
+    .download:active { 
+      background-color: #7D84B2;
+    }
+    /* Reset Button */
+    .reset {
+      border-radius: 5px;
+      margin: 10px;
+      border: 0;
+      line-height: 2.5;
+      padding: 0 20px;
+      font-size: 1rem;
+      text-align: center;
+      color: white;
+      text-shadow: 1px 1px 1px black;
+      background-color: #17BEBB;
+    }
+    .reset:hover {
+      background-color: #14453D;
+    }
+    .reset:active { 
+      background-color: #7D84B2;
+    }
+    
+
     </style>
     {{ bootstrap.load_css() }}
   </head>
@@ -42,33 +96,90 @@
       <hr />
 
       <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
-      <button class="resetImage">Reset Image</button>
 
       <hr />
 
       <!-- Add image preview (don't use api token) -->
+
+      <!-- Drawing Canvas -->
+      <div class="canvas-wrapper">
+        <canvas id="canvasImage" width="800" height="600">
+          Your browser doesn't support the canvas tag.         
+        </canvas>
+      </div>
+
+      <div class="downloadAndReset">
+        <!-- Display Download Option -->
+        <button class="download">Download</button>
+
+        <!-- Display Reset Image Button -->
+        <button class="reset">Reset Image</button>
+      </div>
+    </div>
+
+    
+    <script type="text/javascript">
+    // elements
+    let uploadedImage = document.getElementById("imageInput");
+    let brushSize = document.getElementById("brushSize");
+    let brushColor = document.getElementById("brushColor");
+
+    // drawing code on canvas
+    // credit for this code: https://stackoverflow.com/questions/2368784/draw-on-html5-canvas-using-a-mouse
+    function drawing() {
+      var canvas = document.getElementById("canvasImage");
+      document.body.appendChild(canvas);
       
-      <button class="download">Download</button>
-    </div>
+      document.body.style.margin = 0;
+      canvas.style.position = 'fixed';
+      
+      // get 2d content from canvas
+      var ctx = canvas.getContext("2d");
+      resize();
+      
+      // last known position (try removing this for an experiment)
+      var pos = { x: 0, y: 0 };
+      
+      // main access stuff
+      window.addEventListener('resize', resize);
+      document.addEventListener('mousemove', draw);
+      document.addEventListener('mousedown', setPosition);
+      document.addEventListener('mouseenter', setPosition);
+      
+    }
+    
+    // new pos from mouse event
+    function setPosition(e) {
+      pos.x = e.clientX;
+      pos.y = e.clientY;
+    }
+    
+    // resize canvas
+    function resize() {
+      ctx.canvas.width = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
+    }
 
-    <!-- Drawing Canvas -->
-    <div class="canvas-wrapper">
-      <canvas id="canvas" width="800" height="600"></canvas>
-    </div>
-    <script>
-      // buttons
+    // drawing
+    function draw(e) {
+      // mouse left button must be pressed
+      if (e.buttons !== 1) return;
+    
+      ctx.beginPath(); // begin drawing
 
-      // canvas 
-      const brushTool = document.querySelector(".brushTool");
-      const eraserTool = document.querySelector(".eraserTool");
-      const clearCanvas = document.querySelector(".clearCanvas");
+      // todo: brushSize.value is my code -> may cause error 
+      ctx.lineWidth = brushSize.value;
+      ctx.lineCap = 'round';
+      // todo: brushColor.value is my code -> may cause error
+      ctx.strokeStyle = brushColor.value;
+      
+      ctx.moveTo(pos.x, pos.y);
+      setPosition(e);
+      ctx.lineTo(pos.x, pos.y);
 
-      // export
-      const exportButton = document.querySelector(".exportButton");
+      ctx.stroke();
+    }
 
-      exportButton.addEventListener("click", () => {
-        console.log("Button clicked!");
-      });
     </script>
     
     {{ bootstrap.load_js() }}
