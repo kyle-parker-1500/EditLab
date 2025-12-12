@@ -94,7 +94,7 @@
           <!-- Choose File Input -->
           <input type="file" id="imageInput" accept=".png, .jpeg, .jpg" />
 
-          <a href="#" class="btn btn-primary" id="uploadToCanvasButton">Go somewhere</a>
+          <a href="#" class="btn btn-primary" id="uploadToCanvasButton">Load canvas</a>
         </div>
       </div> 
 
@@ -146,27 +146,57 @@
     </div>
     
     <script type="text/javascript">
-    // elements
+    // elements for preview of image
     let imageInput = document.querySelector("#imageInput");
     let previewImage = document.querySelector(".card-img-top");
-    let uploadCanvasButton = document.querySelector("#uploadImageButton");
-    let canvas = document.querySelector("#canvasImage");
+    let uploadCanvasButton = document.querySelector("#uploadToCanvasButton");
     
-    let currentFileUrl;
+    // elements for image filter api
+    
+    // elements for canvas
+    let canvas = document.querySelector("#canvasImage");
+    var ctx = canvas.getContext("2d");
+    
+    let currentFileUrl = null;
+    let currentFile = null;
     
     /* Displaying Preview of Image */
     imageInput.addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      const localUrl = URL.createObjectURL(file);
+      currentFile = event.target.files[0];
+      const localUrl = URL.createObjectURL(currentFile);
       
       currentFileUrl = localUrl;
 
-      previewImage.src = localUrl;
+      previewImage.src = currentFileUrl;
     });
     
+    /* Setting background to preview image */
     uploadCanvasButton.addEventListener('click', function(event) {
-      canvas.background = currentFileUrl;
+      if (!currentFile) {
+        console.warn("No file selected");
+        return;
+      }
+
+      // canvas.background = currentFileUrl;
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const img = new Image();
+
+        img.onload = function() {
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = e.target.result;
+      };
+      
+      reader.readAsDataURL(currentFile); 
     });
+    
+    /* API Dropdown -> First Get Data From Backend To Populate Dropdown */
 
     </script>
     
