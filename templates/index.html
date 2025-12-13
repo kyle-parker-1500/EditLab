@@ -113,6 +113,9 @@
           <label for="filters">Choose a filter:</label>
           <select name="Filters" id="filters">
             <option value="">--Please choose a filter--</option>
+            {% for filter in effect_list %}
+              <option value="{{filter}}">{{ filter }}</option>
+            {% endfor %}
           </select>
 
           <!-- Brush Size Input -->
