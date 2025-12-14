@@ -113,6 +113,7 @@
           <label for="filters">Choose a filter:</label>
           <select name="Filters" id="filters">
             <option value="">--Please choose a filter--</option>
+            <!-- POPULATE DROPDOWN -->
             {% for filter in effect_list %}
               <option value="{{filter}}">{{ filter }}</option>
             {% endfor %}
@@ -153,6 +154,9 @@
     let imageInput = document.querySelector("#imageInput");
     let previewImage = document.querySelector(".card-img-top");
     let uploadCanvasButton = document.querySelector("#uploadToCanvasButton");
+
+    // saved image url, updated when image is changed to something else
+    var previousImageUrl = null;
     
     // elements for image filter api
     
@@ -166,12 +170,13 @@
     /* Displaying Preview of Image */
     imageInput.addEventListener('change', function(event) {
       currentFile = event.target.files[0];
-      const localUrl = URL.createObjectURL(currentFile);
       
-      currentFileUrl = localUrl;
+      getUrl(currentFile);
 
       previewImage.src = currentFileUrl;
     });
+    
+    
     
     /* Setting background to preview image */
     uploadCanvasButton.addEventListener('click', function(event) {
@@ -179,30 +184,107 @@
         console.warn("No file selected");
         return;
       }
-
-      // canvas.background = currentFileUrl;
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-        const img = new Image();
-
-        img.onload = function() {
-          canvas.width = img.width;
-          canvas.height = img.height;
-
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
-        };
-        img.src = e.target.result;
-      };
       
-      reader.readAsDataURL(currentFile); 
+      updateCanvasWithUrl(currentFileUrl);
     });
 
     /* Create 2 separate canvases, one for background/filters & one for drawing */
     
     /* API Dropdown -> First Get Data From Backend To Populate Dropdown */
+    // dropdown element
+    const select = document.querySelector("#filters");
 
+    // get value of selected filter and pass to apply_effect
+    select.addEventListener('change', async function(event) {
+      // ---- if there's no file in the canvas ----
+      if (!currentFile) { 
+        console.warn("No file selected")
+        return;
+      }
+
+      // currently selected dropdown option
+      const currentlySelected = select.value;
+
+      // saves the old version of the image to revert
+      previousImageUrl = currentFileUrl; 
+
+      // getting data to pass to backend
+      const formData = new FormData();
+      formData.append('file', currentFile); // original image
+      formData.append('effect', currentlySelected);
+
+      try {
+        const response = await fetch('/apply-effect', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          console.error("Error from server");
+          return;
+        }
+        
+        // read binary data response with blob
+        const blob = await response.blob();
+        // convert to url to put in src of <img> or <a>
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // update current url with the newly generated one 
+        currentFileUrl = blobUrl;
+
+        // drawing to canvas
+        updateCanvasWithUrl(currentFileUrl);
+      } catch (err) {
+        console.error(err);
+      }
+      // to reverse- save current image file
+    });
+    
+    /* ---- RESET IMAGE BUTTON ---- */
+    const resetButton = document.querySelector(".reset");
+    
+    resetButton.addEventListener('click', function() {
+      if (previousImageUrl !== null) {
+        updateCanvasWithUrl(previousImageUrl);
+      }
+      return; 
+    });
+
+    /* ---- FUNCTION TO UPDATE CANVAS ---- */
+    function updateCanvasWithUrl(url) {
+      const img = new Image();
+      
+      img.onload = function() {
+        // set max width & height
+        // set width to match window
+        if (img.width > window.innerWidth) {
+          canvas.width = window.innerWidth;
+          img.width = window.innerWidth;
+        }
+        // set height to match window
+        if (img.height > window.innerHeight) {
+          canvas.height = window.innerHeight;
+          img.height = window.innerHeight;
+        }
+        // if everything matches set the canvas width & height
+        if (img.width <= window.innerWidth && img.height <= window.innerHeight) { 
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = url;
+    }
+
+    /* ---- FUNCTION TO RETURN URL/SRC OF CURRENT IMG ---- */
+    function getUrl(file) {
+      const url = URL.createObjectURL(file);
+      // update global var
+      currentFileUrl = url;
+      return url;
+    }
     </script>
     
     {{ bootstrap.load_js() }}

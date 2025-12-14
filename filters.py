@@ -71,7 +71,7 @@ def apply_effect(image_path, effect_name):
     img_data = requests.get(image_url)
 
     if img_data.status_code == 200:
-        with open("output.png", "wb") as f:
+        with open("/uploads/output.png", "wb") as f:
             f.write(img_data.content)
         return "output.png"
 
