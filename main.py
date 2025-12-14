@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 bootstrap = Bootstrap5(app)
 
-# filepath to save images to
+# filepath to save uploaded images to
 dir = Path(__file__).resolve().parent
 upload_folder = dir / "uploads"
 upload_folder.mkdir(exist_ok=True)
@@ -34,17 +34,15 @@ def get_effect():
     # ---- save file to disk ----
     # generate unique filename for secure disk saving things
     filename = secure_filename(uploaded.filename or "input.png")
-    path = upload_folder / filename
+    uploaded_img_path = upload_folder / filename
     # save on generated path
-    uploaded.save(path) 
+    uploaded.save(uploaded_img_path) 
     
     # query apply_effect with new filename
-    output_file = apply_effect(str(path), effect_name)
+    apply_effect(str(uploaded_img_path), effect_name)
     
     # get created image (always named output.png)
-    if output_file != None:
-        output_path = upload_folder / output_file 
-    output_path = upload_folder / "output.png"
+    output_path = dir / "output.png"
     
     print("Path: ", output_path)
 

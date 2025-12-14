@@ -226,16 +226,16 @@
         
         // read binary data response with blob
         const blob = await response.blob();
-        // convert to url to put in src of <img> or <a>
         const blobUrl = URL.createObjectURL(blob);
         
         // update current url with the newly generated one 
         currentFileUrl = blobUrl;
-
-        // drawing to canvas
+        previewImage.src = blobUrl;
+        
+        // draw to canvas
         updateCanvasWithUrl(currentFileUrl);
       } catch (err) {
-        console.error(err);
+        console.error("Fetch Error: ", err);
       }
       // to reverse- save current image file
     });
