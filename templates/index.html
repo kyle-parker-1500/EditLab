@@ -77,6 +77,10 @@
     .card {
       margin: 2rem;
     } 
+    /* Queries Remaining Text */
+    .queriesRemaining {
+      margin: 10px;
+    }
     </style>
     {{ bootstrap.load_css() }}
   </head>
@@ -103,6 +107,7 @@
       <button class="brushButton">Brush</button>
       <button class="eraserButton">Eraser</button>
       <button class="clearButton">Clear Brush</button>
+      <h4 class="queriesRemaining">Queries Remaining: <span class="fst-italic">{{ credits_remaining() }}</span></h4>
 
       <!-- Brush Tools -->
       <div class="brushTools">
@@ -230,7 +235,6 @@
         
         // update current url with the newly generated one 
         currentFileUrl = blobUrl;
-        previewImage.src = blobUrl;
         
         // draw to canvas
         updateCanvasWithUrl(currentFileUrl);

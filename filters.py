@@ -60,7 +60,7 @@ def apply_effect(image_path, effect_name):
     # Extract JSON
     json_data = response.json()
 
-    # Extract the REAL processed image URL
+    # Extract the REAL processed image URl
     if "data" not in json_data or "url" not in json_data["data"]:
         print("API returned no URL:", json_data)
         return None
@@ -78,6 +78,17 @@ def apply_effect(image_path, effect_name):
     print("Failed to download final image:", img_data.text)
     return None
 
+# ---- GET TOTAL REMAINING CREDITS ----
+def get_credits_remaining():
+    url = "https://api.picsart.io/tools/1.0/balance"
+    headers = {
+        "X-Picsart-API-Key": API_KEY,
+        "accept": "application/json"
+        }
+    response = requests.get(url, headers=headers)
+    json_response = response.json()
+    print_credits = json_response['credits']
+    return print_credits 
 
 """ # ---- GUI ----
 class MyWindow(QWidget):

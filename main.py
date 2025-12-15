@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, send_file
 from flask_bootstrap import Bootstrap5
 from werkzeug.utils import secure_filename
 
-from filters import apply_effect, EFFECT_LIST, API_KEY
+from filters import apply_effect, EFFECT_LIST, get_credits_remaining
 
 # create instance of Flask
 app = Flask(__name__)
@@ -23,6 +23,7 @@ def home():
     return render_template(
         'index.html',
         effect_list=EFFECT_LIST,
+        credits_remaining=get_credits_remaining,
         )
 
 @app.route('/apply-effect', methods=['POST'])
