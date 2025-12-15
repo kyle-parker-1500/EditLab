@@ -114,27 +114,37 @@
         
         <div class="verticalTools">
 
-          <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
-          <label for="filters">Choose a filter:</label>
-          <select name="Filters" id="filters">
-            <option value="">--Please choose a filter--</option>
-            <!-- POPULATE DROPDOWN -->
-            {% for filter in effect_list %}
-              <option value="{{filter}}">{{ filter }}</option>
-            {% endfor %}
-          </select>
+          <!-- Filter Dropdown -->
+          <div class="row gap-2">
+            <div class="col-sm-3">
+              <div class="form-floating">
+                <select class="form-select" name="Filters" id="filters">
+                  <option selected>Filters</option>
+                  <!-- POPULATE DROPDOWN -->
+                  {% for filter in effect_list %}
+                    <option value="{{filter}}">{{ filter }}</option>
+                  {% endfor %}
+                </select>
+                <label for="filters">Choose a filter:</label>
+              </div>
+            </div>            
+            <div class="col-sm">
+              <!-- Brush Size Input -->
+              <label for="brushSize" class="form-label">
+                Brush Size <span id="currentBrushSize">5</span>:
+                <input type="range" class="form-range" id="brushSize" min="1" max="21" step="5" value="5" />
+              </label>
 
-          <!-- Brush Size Input -->
-          <label>
-            Brush Size:
-            <input type="range" id="brushSize" min="1" max="21" step="5" value="5" />
-          </label>
-
-          <!-- Brush Color Input -->
-          <label>
-            Brush Color:
-            <input type="color" id="brushColor" value="#000000" /> 
-          </label>
+              <!-- Brush Color Input -->
+              <label for="brushColor" class="form-label">Brush Color:
+                <input type="color" class="form-control form-control-color" id="brushColor" value="#000000" /> 
+              </label>
+            </div>
+          </div>
+          
+                              
+          
+          <!-- Chroma Key Options Dropdown -->
         </div>
       </div>
 
@@ -244,6 +254,15 @@
         console.error("Fetch Error: ", err);
       }
       // to reverse- save current image file
+    });
+    
+    /* ---- DISPLAY CURRENT BRUSH SIZE ---- */
+    const rangeForm = document.querySelector("#brushSize");
+    var currentSizeText = document.querySelector("#currentBrushSize");
+    
+    rangeForm.addEventListener('change', function(event) {
+      var curText = event.target.value;
+      currentSizeText.textContent = curText-1;
     });
     
     /* ---- RESET IMAGE BUTTON ---- */

@@ -1,5 +1,9 @@
 from PIL import Image
 
+# credit goes to haruka for the idea of the eraser and the implementation
+# I (kyle) didn't realize that I couldn't use Pillow as an eraser due to how javascript updates things
+# so I wasn't able to use it in the final product.
+
 def erase_area(image_path, x, y, size=20):
     """
     image_path: 編集する画像のパス

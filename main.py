@@ -6,6 +6,7 @@ from flask_bootstrap import Bootstrap5
 from werkzeug.utils import secure_filename
 
 from filters import apply_effect, EFFECT_LIST, get_credits_remaining
+from chroma import chroma_key, chroma_key_with_img, reverse_chroma_key
 
 # create instance of Flask
 app = Flask(__name__)
