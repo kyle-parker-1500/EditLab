@@ -21,7 +21,7 @@
       border-radius: 1rem;
     }
     /* Download, Reset, and Brush Buttons */
-    .download, .reset, .brushButton {
+    .download, .brushButton {
       border-radius: 5px;
       margin: 10px;
       border: 0;
@@ -33,14 +33,14 @@
       text-shadow: 1px 1px 1px black;
       background-color: #17BEBB;
     }
-    .download:hover, .reset:hover, .brushButton:hover {
+    .download:hover, .brushButton:hover {
       background-color: #14453D;
     }
-    .download:active, .reset:active, .brushButton:active { 
+    .download:active, .brushButton:active { 
       background-color: #7D84B2;
     }
     /* Eraser & Clear Buttons */
-    .eraserButton, .undoButton {
+    .eraserButton, .reset, .undoButton {
       border-radius: 5px;
       margin: 10px;
       border: 0;
@@ -52,10 +52,10 @@
       text-shadow: 1px 1px 1px black;
       background-color: #FF0000;
     }
-    .eraserButton:hover, .undoButton:hover {
+    .eraserButton:hover, .reset:hover, .undoButton:hover {
       background-color: #14453D;
     }
-    .eraserButton:active, .undoButton:active { 
+    .eraserButton:active, .reset:active, .undoButton:active { 
       background-color: #7D84B2;
     }
     
@@ -375,7 +375,7 @@
     });
     
     /* ---- TEMPORARY SINGLE UNDO BUTTON ---- */
-    const undoButton = document.querySelector(".undo");
+    const undoButton = document.querySelector(".undoButton");
 
     undoButton.addEventListener('click', function() {
       if (previousImageUrl !== null) {
@@ -419,6 +419,39 @@
       currentFileUrl = url;
       return url;
     }
+    
+    /* ---- DOWNLOAD / EXPORT BUTTON ---- */
+    const downloadButton = document.querySelector(".download");
+    console.log("download button: ", downloadButton);
+    
+    downloadButton.addEventListener('click', function() {
+      console.log("Download button clicked");
+      console.log("currentFileUrl: ", currentFileUrl);
+
+      if (!currentFileUrl) {
+        alert("No image to download!");
+        return;
+      }
+      
+      const filename = prompt("Enter a filename:", "editlab.png");
+      console.log("filename: ", filename);
+      if (!filename) return; // cancelled
+    
+      canvas.toBlob(function(blob) {
+        console.log("blob created, size: ", blob.size);
+        const url = URL.createObjectURL(blob);
+        console.log("download url: ", url);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    });
     </script>
     
     {{ bootstrap.load_js() }}
