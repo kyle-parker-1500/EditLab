@@ -21,7 +21,7 @@
       border-radius: 1rem;
     }
     /* Download, Reset, and Brush Buttons */
-    .download, .reset, .brushButton {
+    .download, .brushButton {
       border-radius: 5px;
       margin: 10px;
       border: 0;
@@ -33,14 +33,14 @@
       text-shadow: 1px 1px 1px black;
       background-color: #17BEBB;
     }
-    .download:hover, .reset:hover, .brushButton:hover {
+    .download:hover, .brushButton:hover {
       background-color: #14453D;
     }
-    .download:active, .reset:active, .brushButton:active { 
+    .download:active, .brushButton:active { 
       background-color: #7D84B2;
     }
     /* Eraser & Clear Buttons */
-    .eraserButton, .undoButton {
+    .eraserButton, .reset, .undoButton {
       border-radius: 5px;
       margin: 10px;
       border: 0;
@@ -52,10 +52,10 @@
       text-shadow: 1px 1px 1px black;
       background-color: #FF0000;
     }
-    .eraserButton:hover, .undoButton:hover {
+    .eraserButton:hover, .reset:hover, .undoButton:hover {
       background-color: #14453D;
     }
-    .eraserButton:active, .undoButton:active { 
+    .eraserButton:active, .reset:active, .undoButton:active { 
       background-color: #7D84B2;
     }
     
@@ -104,9 +104,10 @@
 
       <hr />
 
-      <button class="brushButton">Brush</button>
-      <button class="eraserButton">Eraser</button>
-      <button class="undoButton">Undo</button>
+      <!-- Never implemenented brush functionality, leaving these here if I come back to this later -Kyle -->
+      <button class="brushButton d-none">Brush</button>
+      <button class="eraserButton d-none">Eraser</button>
+      <button class="undoButton d-none">Undo</button>
       <h4 class="queriesRemaining">Queries Remaining: <span class="fst-italic">{{ credits_remaining() }}</span></h4>
 
       <!-- Brush Tools -->
@@ -114,27 +115,44 @@
         
         <div class="verticalTools">
 
-          <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
-          <label for="filters">Choose a filter:</label>
-          <select name="Filters" id="filters">
-            <option value="">--Please choose a filter--</option>
-            <!-- POPULATE DROPDOWN -->
-            {% for filter in effect_list %}
-              <option value="{{filter}}">{{ filter }}</option>
-            {% endfor %}
-          </select>
-
-          <!-- Brush Size Input -->
-          <label>
-            Brush Size:
-            <input type="range" id="brushSize" min="1" max="21" step="5" value="5" />
-          </label>
-
-          <!-- Brush Color Input -->
-          <label>
-            Brush Color:
-            <input type="color" id="brushColor" value="#000000" /> 
-          </label>
+          <!-- Filter Dropdown -->
+          <div class="row gap-1">
+            <div class="col-sm-2">
+              <div class="form-floating">
+                <select class="form-select" name="Filters" id="filters">
+                  <option selected>Filters</option>
+                  <!-- POPULATE DROPDOWN -->
+                  {% for filter in effect_list %}
+                    <option value="{{filter}}">{{ filter }}</option>
+                  {% endfor %}
+                </select>
+                <label for="filters">Choose a filter:</label>
+              </div>
+            </div>            
+            <div class="col-sm-1">
+              <!-- Brush Color Input -->
+              <label for="brushColor" class="form-label">Color:
+                <input type="color" class="form-control form-control-color" id="brushColor" value="#000000" /> 
+              </label>
+            </div>
+            <div class="col-sm-2">
+              <!-- Chroma Key Options Dropdown -->
+              <div class="form-floating">
+                <select class="form-select" name="Chroma Filters" id="chromaKey">
+                  <option selected>Chroma Filters</option>
+                  <option value="default">Background Remove Chroma Key</option>
+                  <option value="reverse">Foreground Remove Reverse Chroma Key</option>
+                  <option value="replace_img_chroma">Replace Image Chroma Key</option>
+                </select>                
+                <label for="chromaKey">
+                  Choose a key:
+                </label>
+              </div> 
+            </div>
+            <div id="secondImageContainer" class="d-none">
+              <input type="file" id="secondImageUpload" accept=".png, .jpeg, .jpg" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -181,7 +199,6 @@
 
       previewImage.src = currentFileUrl;
     });
-    
     
     
     /* Setting background to preview image */
@@ -233,17 +250,101 @@
         
         // read binary data response with blob
         const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // update current url with the newly generated one 
-        currentFileUrl = blobUrl;
+        const blobUrl = getUrl(blob);
         
         // draw to canvas
+        // currentFileUrl is updated in getUrl
         updateCanvasWithUrl(currentFileUrl);
       } catch (err) {
-        console.error("Fetch Error: ", err);
+        console.error("Fetch Error {Filters}: ", err);
       }
       // to reverse- save current image file
+    });
+    
+    /* ---- PASS DATA TO CHROMA KEY METHODS ---- */
+    const chromaSelect = document.querySelector("#chromaKey");
+    const color = document.querySelector("#brushColor");
+    
+    // options from dropdown
+    const defaultChroma = document.querySelector("#chroma_bg_remove");
+    const reverseChroma = document.querySelector("#reverse_chroma_foreground_remove");
+    const replaceImg = document.querySelector("#replace_img_chroma");
+    
+    // get second upload if button displayed
+    const getSecondImage = document.querySelector("#secondImageUpload");
+    const secondImageContainer = document.querySelector("#secondImageContainer");
+
+    let secondFile = null;
+    
+    getSecondImage.addEventListener('change', async function(event) {
+      secondFile = event.target.files[0];
+      if (!secondFile) return;
+    
+      const mode = chromaSelect.value;
+      if (mode == "replace_img_chroma") {
+        chromaSelect.dispatchEvent(new Event('change'));
+      }
+      getUrl(secondFile);
+    });
+
+    chromaSelect.addEventListener('change', async function(event) {
+      if (!currentFile) {
+        console.warn("No file selected");
+        alert("No file selected");
+        return;
+      }
+      
+      // get currently selected option
+      const mode = chromaSelect.value;
+      const currentColor = color.value;
+      
+      // for undo to work
+      previousImageUrl = currentFileUrl;
+      
+            
+      if (mode == "replace_img_chroma") {
+        // show 2nd img upload section
+        secondImageContainer.classList.remove("d-none");
+
+        // check if file is uploaded
+        if (!secondFile) {
+          console.warn("Waiting for second file...");
+          return;
+        }
+      } else {
+        secondImageContainer.classList.add("d-none");
+        secondFile = null;
+      }
+
+      const formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('color', currentColor);
+      formData.append('mode', mode); // index
+      
+      if (mode == "replace_img_chroma") {
+        formData.append('second_file', secondFile); 
+        console.log("What was appended to the form {secondfile}: " + secondFile);
+      }
+
+      const endpoint = '/chroma-key';
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          console.error("Error from server");
+          return;
+        }
+        
+        const blob = await response.blob();
+        getUrl(blob);
+        updateCanvasWithUrl(currentFileUrl);
+      } catch(err) {
+        console.error("Fetch error {Chroma Key}: " + err);
+      }
     });
     
     /* ---- RESET IMAGE BUTTON ---- */
@@ -258,7 +359,7 @@
     });
     
     /* ---- TEMPORARY SINGLE UNDO BUTTON ---- */
-    const undoButton = document.querySelector(".undo");
+    const undoButton = document.querySelector(".undoButton");
 
     undoButton.addEventListener('click', function() {
       if (previousImageUrl !== null) {
@@ -302,6 +403,41 @@
       currentFileUrl = url;
       return url;
     }
+    
+    /* ---- DOWNLOAD / EXPORT BUTTON ---- */
+    const downloadButton = document.querySelector(".download");
+    console.log("download button: ", downloadButton);
+    
+    downloadButton.addEventListener('click', function() {
+      console.log("Download button clicked");
+      console.log("currentFileUrl: ", currentFileUrl);
+
+      if (!currentFileUrl) {
+        alert("No image to download!");
+        return;
+      }
+      
+      // prompt user for filename
+      const filename = prompt("Enter a filename:", "editlab.png");
+      console.log("filename: ", filename);
+      if (!filename) return; // cancelled
+    
+      // export as temporary link
+      canvas.toBlob(function(blob) {
+        console.log("blob created, size: ", blob.size);
+        const url = URL.createObjectURL(blob);
+        console.log("download url: ", url);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    });
     </script>
     
     {{ bootstrap.load_js() }}
