@@ -279,14 +279,18 @@
     
     // get second upload if button displayed
     const getSecondImage = document.querySelector("#secondImageUpload");
-    const secondImageButton = document.querySelector("#secondImageButton");
     const secondImageContainer = document.querySelector("#secondImageContainer");
 
     let secondFile = null;
     
-    getSecondImage.addEventListener('change', function(event) {
+    getSecondImage.addEventListener('change', async function(event) {
       secondFile = event.target.files[0];
       if (!secondFile) return;
+    
+      const mode = chromaSelect.value;
+      if (mode == "replace_img_chroma") {
+        chromaSelect.dispatchEvent(new Event('change'));
+      }
       getUrl(secondFile);
     });
 
@@ -304,11 +308,7 @@
       // for undo to work
       previousImageUrl = currentFileUrl;
       
-      const formData = new FormData();
-      formData.append('file', currentFile);
-      formData.append('color', currentColor);
-      formData.append('mode', mode); // index
-      
+            
       if (mode == "replace_img_chroma") {
         // show 2nd img upload section
         secondImageContainer.classList.remove("d-none");
@@ -318,11 +318,21 @@
           console.warn("Waiting for second file...");
           return;
         }
-        formData.append('second_file', secondFile); 
       } else {
         secondImageContainer.classList.add("d-none");
+        secondFile = null;
       }
+
+      const formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('color', currentColor);
+      formData.append('mode', mode); // index
       
+      if (mode == "replace_img_chroma") {
+        formData.append('second_file', secondFile); 
+        console.log("What was appended to the form {secondfile}: " + secondFile);
+      }
+
       const endpoint = '/chroma-key';
 
       try {
