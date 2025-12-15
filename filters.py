@@ -1,11 +1,12 @@
 import sys
 import requests
-from PySide6.QtWidgets import (
+""" from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton,
     QVBoxLayout, QFileDialog, QComboBox, QMessageBox
-)
+) """
 
 API_KEY = "paat-gffXox3xS6LvMNCSCCmXFKv6WLH"
+SECOND_API_KEY = "paat-HWIQkDKSKPbc4lBDVURharEE4jk" # for when we run out of uses on the first one
 
 
 # ---- REAL VERIFIED PICSART EFFECT LIST ----
@@ -37,7 +38,7 @@ def apply_effect(image_path, effect_name):
     url = "https://api.picsart.io/tools/1.0/effects"
 
     headers = {
-        "X-Picsart-API-Key": API_KEY,
+        "X-Picsart-API-Key": get_api_key(),
         "accept": "application/json"
     }
 
@@ -60,7 +61,7 @@ def apply_effect(image_path, effect_name):
     # Extract JSON
     json_data = response.json()
 
-    # Extract the REAL processed image URL
+    # Extract the REAL processed image URl
     if "data" not in json_data or "url" not in json_data["data"]:
         print("API returned no URL:", json_data)
         return None
@@ -78,8 +79,24 @@ def apply_effect(image_path, effect_name):
     print("Failed to download final image:", img_data.text)
     return None
 
+# ---- GET TOTAL REMAINING CREDITS ----
+def get_credits_remaining():
+    url = "https://api.picsart.io/tools/1.0/balance"
+    headers = {
+        "X-Picsart-API-Key": get_api_key(),
+        "accept": "application/json"
+        }
+    response = requests.get(url, headers=headers)
+    json_response = response.json()
+    print_credits = json_response['credits']
+    return print_credits 
 
-# ---- GUI ----
+# ---- GET API KEY ----
+# - Change when run out of uses -
+def get_api_key():
+    return API_KEY
+
+""" # ---- GUI ----
 class MyWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -138,3 +155,4 @@ app = QApplication([])
 window = MyWindow()
 window.show()
 sys.exit(app.exec())
+ """

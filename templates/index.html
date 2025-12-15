@@ -5,38 +5,305 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EditLab</title>
     <link href="css/style.css" rel="stylesheet">
+    <style>
+    /*
+    Colors:
+    Primary: #17BEBB
+    Shadows: #14453D / background
+    Highlights: #CD5334
+    2nd Highlights: #EDB88B
+    */
+    canvas {
+      margin-top: 20px;
+      margin: 10px;
+      background-color: rgba(45, 45, 45, 0);
+      border: 5px solid #CD5334;
+      border-radius: 1rem;
+    }
+    /* Download, Reset, and Brush Buttons */
+    .download, .reset, .brushButton {
+      border-radius: 5px;
+      margin: 10px;
+      border: 0;
+      line-height: 2.5;
+      padding: 0 20px;
+      font-size: 1rem;
+      text-align: center;
+      color: white;
+      text-shadow: 1px 1px 1px black;
+      background-color: #17BEBB;
+    }
+    .download:hover, .reset:hover, .brushButton:hover {
+      background-color: #14453D;
+    }
+    .download:active, .reset:active, .brushButton:active { 
+      background-color: #7D84B2;
+    }
+    /* Eraser & Clear Buttons */
+    .eraserButton, .undoButton {
+      border-radius: 5px;
+      margin: 10px;
+      border: 0;
+      line-height: 2.5;
+      padding: 0 20px;
+      font-size: 1rem;
+      text-align: center;
+      color: white;
+      text-shadow: 1px 1px 1px black;
+      background-color: #FF0000;
+    }
+    .eraserButton:hover, .undoButton:hover {
+      background-color: #14453D;
+    }
+    .eraserButton:active, .undoButton:active { 
+      background-color: #7D84B2;
+    }
+    
+    /* Vertically Align Tools */
+    .verticalTools {
+      margin: 10px;
+    }
+    .brushColor {
+      margin-top: 1%;
+      vertical-align: baseline;
+    }
+    /* Title */
+    .title {
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+      font-size: 50px;
+      text-align: center;
+    }
+    /* Upload Image Card */
+    .card {
+      margin: 2rem;
+    } 
+    /* Queries Remaining Text */
+    .queriesRemaining {
+      margin: 10px;
+    }
+    </style>
     {{ bootstrap.load_css() }}
   </head>
   <body>
-    <div class="card m-auto" style="width: 18rem;">
-      <div class="card-body">
-        <h5 class="card-title">Upload an Image</h5>
-        <p class="card-text">Upload an image to apply filters to.</p>
-        <input class="m-auto my-2" type="file" id="filter_img" name="filter_img" accept=".png, .jpg, .jpeg" />
+    <div class="sidebar">
+      <h2 class="title">EditLab</h2>
+            
+      <!-- Add image preview (don't use api token) -->
+      <!-- Upload Image Card -->
+      <div class="card" style="width: 18rem;">
+        <img src="..." class="card-img-top" alt="Uploaded image preview" />
+        <div class="card-body">
+          <h5 class="card-title">Upload Image:</h5>
+          
+          <!-- Choose File Input -->
+          <input type="file" id="imageInput" accept=".png, .jpeg, .jpg" />
 
-        <!-- Show Image Button -->
-        <a href="#" id="showImgBtn" class="btn btn-primary">Submit</a>
+          <a href="#" class="btn btn-primary" id="uploadToCanvasButton">Load canvas</a>
+        </div>
+      </div> 
 
-        <!-- Test Image Preview -->
-        <img id="preview" src="" alt="uploaded image" class="img-fluid mt-3" style="display:none;"/>
+      <hr />
+
+      <button class="brushButton">Brush</button>
+      <button class="eraserButton">Eraser</button>
+      <button class="undoButton">Undo</button>
+      <h4 class="queriesRemaining">Queries Remaining: <span class="fst-italic">{{ credits_remaining() }}</span></h4>
+
+      <!-- Brush Tools -->
+      <div class="brushTools">
+        
+        <div class="verticalTools">
+
+          <!-- Filter Dropdown (add later)- Get items from Jayson's filter.py -->
+          <label for="filters">Choose a filter:</label>
+          <select name="Filters" id="filters">
+            <option value="">--Please choose a filter--</option>
+            <!-- POPULATE DROPDOWN -->
+            {% for filter in effect_list %}
+              <option value="{{filter}}">{{ filter }}</option>
+            {% endfor %}
+          </select>
+
+          <!-- Brush Size Input -->
+          <label>
+            Brush Size:
+            <input type="range" id="brushSize" min="1" max="21" step="5" value="5" />
+          </label>
+
+          <!-- Brush Color Input -->
+          <label>
+            Brush Color:
+            <input type="color" id="brushColor" value="#000000" /> 
+          </label>
+        </div>
+      </div>
+
+      <!-- Drawing Canvas -->
+      <div class="canvas-wrapper">
+        <canvas id="canvasImage" width="800" height="600">
+          Your browser doesn't support the canvas tag.         
+        </canvas>
+      </div>
+
+      <div class="downloadAndReset">
+        <!-- Display Download Option -->
+        <button class="download">Download</button>
+
+        <!-- Display Reset Image Button -->
+        <button class="reset">Reset Image</button>
       </div>
     </div>
-    <script>
-    document.getElementById('showImgBtn').addEventListener('click', () => {
-      const fileInput = document.getElementById('filter_img');
-      const preview = document.getElementById('preview');
+    
+    <script type="text/javascript">
+    // elements for preview of image
+    let imageInput = document.querySelector("#imageInput");
+    let previewImage = document.querySelector(".card-img-top");
+    let uploadCanvasButton = document.querySelector("#uploadToCanvasButton");
 
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
+    // saved image url, updated when image is changed to something else
+    var previousImageUrl = null;
+    
+    // elements for image filter api
+    
+    // elements for canvas
+    let canvas = document.querySelector("#canvasImage");
+    var ctx = canvas.getContext("2d");
+    
+    let currentFileUrl = null;
+    let currentFile = null;
+    
+    /* Displaying Preview of Image */
+    imageInput.addEventListener('change', function(event) {
+      currentFile = event.target.files[0];
+      originalFile = currentFile; // only change here -> for resetting the image
+      
+      getUrl(currentFile);
 
-        reader.onload = (e) => {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      }
+      previewImage.src = currentFileUrl;
     });
+    
+    
+    
+    /* Setting background to preview image */
+    uploadCanvasButton.addEventListener('click', function(event) {
+      if (!currentFile) {
+        console.warn("No file selected");
+        return;
+      }
+      
+      updateCanvasWithUrl(currentFileUrl);
+    });
+
+    /* Create 2 separate canvases, one for background/filters & one for drawing */
+    
+    /* API Dropdown -> First Get Data From Backend To Populate Dropdown */
+    // dropdown element
+    const select = document.querySelector("#filters");
+
+    // get value of selected filter and pass to apply_effect
+    select.addEventListener('change', async function(event) {
+      // ---- if there's no file in the canvas ----
+      if (!currentFile) { 
+        console.warn("No file selected")
+        return;
+      }
+
+      // currently selected dropdown option
+      const currentlySelected = select.value;
+
+      // saves the old version of the image to revert
+      previousImageUrl = currentFileUrl; 
+
+      // getting data to pass to backend
+      const formData = new FormData();
+      formData.append('file', currentFile); // original image
+      formData.append('effect', currentlySelected);
+
+      /* -- TRY TO GET DATA FROM API USING FORM -- */
+      try {
+        const response = await fetch('/apply-effect', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          console.error("Error from server");
+          return;
+        }
+        
+        // read binary data response with blob
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // update current url with the newly generated one 
+        currentFileUrl = blobUrl;
+        
+        // draw to canvas
+        updateCanvasWithUrl(currentFileUrl);
+      } catch (err) {
+        console.error("Fetch Error: ", err);
+      }
+      // to reverse- save current image file
+    });
+    
+    /* ---- RESET IMAGE BUTTON ---- */
+    const resetButton = document.querySelector(".reset");
+    
+    resetButton.addEventListener('click', function() {
+      if (originalFile !== null) {
+        const tempUrl = getUrl(originalFile);
+        updateCanvasWithUrl(tempUrl);
+      }
+      return; 
+    });
+    
+    /* ---- TEMPORARY SINGLE UNDO BUTTON ---- */
+    const undoButton = document.querySelector(".undo");
+
+    undoButton.addEventListener('click', function() {
+      if (previousImageUrl !== null) {
+        updateCanvasWithUrl(previousImageUrl);
+      }
+      return;
+    }); 
+
+    /* ---- FUNCTION TO UPDATE CANVAS ---- */
+    function updateCanvasWithUrl(url) {
+      const img = new Image();
+      
+      img.onload = function() {
+        // set max width & height
+        // set width to match window
+        if (img.width > window.innerWidth) {
+          canvas.width = window.innerWidth;
+          img.width = window.innerWidth;
+        }
+        // set height to match window
+        if (img.height > window.innerHeight) {
+          canvas.height = window.innerHeight;
+          img.height = window.innerHeight;
+        }
+        // if everything matches set the canvas width & height
+        if (img.width <= window.innerWidth && img.height <= window.innerHeight) { 
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = url;
+    }
+
+    /* ---- FUNCTION TO RETURN URL/SRC OF CURRENT IMG ---- */
+    function getUrl(file) {
+      const url = URL.createObjectURL(file);
+      // update global var
+      currentFileUrl = url;
+      return url;
+    }
     </script>
+    
     {{ bootstrap.load_js() }}
   </body>
 </html>
