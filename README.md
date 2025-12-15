@@ -1,7 +1,13 @@
 # Edit Lab Readme
 Team Members:
-Alejandro </br>
-Jayson </br>
-Haruka </br>
-Kyle </br>
+- Jayson
+- Haruka
+- Alejandro
+- Kyle
+
+# How to launch
+1. Make sure you're running the venv
+2. Navigate to the root folder of the project
+3. Type `flask --app main --debug run` into your console
+4. Ctrl+click on the resulting link and enjoy!
 
