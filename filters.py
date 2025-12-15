@@ -6,6 +6,7 @@ import requests
 ) """
 
 API_KEY = "paat-gffXox3xS6LvMNCSCCmXFKv6WLH"
+SECOND_API_KEY = "paat-HWIQkDKSKPbc4lBDVURharEE4jk" # for when we run out of uses on the first one
 
 
 # ---- REAL VERIFIED PICSART EFFECT LIST ----
@@ -37,7 +38,7 @@ def apply_effect(image_path, effect_name):
     url = "https://api.picsart.io/tools/1.0/effects"
 
     headers = {
-        "X-Picsart-API-Key": API_KEY,
+        "X-Picsart-API-Key": get_api_key(),
         "accept": "application/json"
     }
 
@@ -82,13 +83,18 @@ def apply_effect(image_path, effect_name):
 def get_credits_remaining():
     url = "https://api.picsart.io/tools/1.0/balance"
     headers = {
-        "X-Picsart-API-Key": API_KEY,
+        "X-Picsart-API-Key": get_api_key(),
         "accept": "application/json"
         }
     response = requests.get(url, headers=headers)
     json_response = response.json()
     print_credits = json_response['credits']
     return print_credits 
+
+# ---- GET API KEY ----
+# - Change when run out of uses -
+def get_api_key():
+    return API_KEY
 
 """ # ---- GUI ----
 class MyWindow(QWidget):
