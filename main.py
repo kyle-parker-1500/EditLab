@@ -25,6 +25,9 @@ def home():
         'index.html',
         effect_list=EFFECT_LIST,
         credits_remaining=get_credits_remaining,
+        chroma_key=chroma_key,
+        img_chroma=chroma_key_with_img,
+        reverse_chroma_key=reverse_chroma_key,
         )
 
 @app.route('/apply-effect', methods=['POST'])
