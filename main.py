@@ -4,6 +4,7 @@ from pathlib import Path
 from flask import Flask, render_template, request, send_file
 from flask_bootstrap import Bootstrap5
 from werkzeug.utils import secure_filename
+from PIL import Image
 
 from filters import apply_effect, EFFECT_LIST, get_credits_remaining
 from chroma import chroma_key, chroma_key_with_img, reverse_chroma_key
@@ -49,7 +50,7 @@ def get_effect():
     # get created image (always named output.png)
     output_path = dir / "output.png"
     
-    print("Path: ", output_path)
+    # debug: print("Path: ", output_path)
 
     # send all new data back to browser
     return send_file(output_path, mimetype="image/png")
@@ -58,3 +59,26 @@ def get_effect():
 def get_key():
     uploaded = request.files['file']
     color = request.form['color']
+    
+    # ---- save file to uploaded folder on disk ----
+    filename = secure_filename(uploaded.filename or "input.png")
+    uploaded_img_path = upload_folder / filename
+    # save on path
+    uploaded.save(uploaded_img_path)
+    
+    # convert color hex to rgb
+    
+    # Source - https://stackoverflow.com/a/29643643
+    hex = str(color).lstrip('#')
+    converted_color = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
+
+    # call chroma_key to chroma the key :)
+    # debug: print("Path of Image: ", uploaded_img_path, "\nand Color: ", converted_color, " of type ", type(converted_color))
+    img_obj = chroma_key(str(uploaded_img_path), converted_color)
+
+    # convert pil image to output path
+    img_obj.save("/output/chroma_result.png", format="PNG") 
+    
+    output_path = dir / "output" / "chroma_result.png"
+    
+    return send_file(output_path, mime_type="image/png")

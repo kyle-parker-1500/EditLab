@@ -154,6 +154,11 @@
                 </label>
               </div> 
             </div>
+            <div id="invisibility" class="d-none">
+              <input type="file" id="secondImageUpload" accept=".png, .jpeg, .jpg" />
+              
+              <a href="#" class="btn btn-primary" id="secondUpload">Submit For Chroma Key</a>
+            </div>
           </div>
         </div>
       </div>
@@ -252,15 +257,13 @@
         
         // read binary data response with blob
         const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // update current url with the newly generated one 
-        currentFileUrl = blobUrl;
+        const blobUrl = getUrl(blob);
         
         // draw to canvas
+        // currentFileUrl is updated in getUrl
         updateCanvasWithUrl(currentFileUrl);
       } catch (err) {
-        console.error("Fetch Error: ", err);
+        console.error("Fetch Error {Filters}: ", err);
       }
       // to reverse- save current image file
     });
@@ -268,6 +271,13 @@
     /* ---- PASS DATA TO CHROMA KEY METHODS ---- */
     const chromaSelect = document.querySelector("#chromaKey");
     const color = document.querySelector("#brushColor");
+    
+    // options from dropdown
+    const defaultChroma = document.querySelector("#chroma_bg_remove");
+    const reverseChroma = document.querySelector("#reverse_chroma_foreground_remove");
+    const replaceImg = document.querySelector("#replace_img_chroma");
+    const getVisibility = document.querySelector("#invisibility");
+
 
     chromaSelect.addEventListener('change', async function(event) {
       if (!currentFile) {
@@ -276,8 +286,16 @@
       }
       
       // get currently selected option
-      const currentlySelected = select.value;
+      const currentlySelected = chromaSelect.value;
 
+      // get visibility & change for 2nd uploaded image (to replace background)
+      if (currentlySelected === "replace_img_chroma") {
+        // check upload image visibility
+        if (getVisibility.classList.contains("d-none")) {
+          getVisibility.classList.remove("d-none");
+        }
+      }
+      
       // get current color
       const currentColor = color.value;
 
@@ -288,7 +306,29 @@
       const formData = new FormData();
       formData.append('file', currentFile);
       formData.append('color', currentColor);
+      
+      /* -- TRY TO GET DATA FROM BACKEND METHODS -- */
+      try {
+        const response = await fetch('/chroma-key', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          console.error("Error from server");
+          return;
+        }
+        
+        // read returned binary img data with blob
+        const blob = await response.blob();
+        getUrl(blob);
 
+        // currentFileUrl is updated in getUrl
+        updateCanvasWithUrl(currentFileUrl); 
+        // read
+      } catch(err) {
+        console.error("Fetch error {Chroma Key}: " + err);
+      }
     });
     
     /* ---- DISPLAY CURRENT BRUSH SIZE ---- */
