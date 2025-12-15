@@ -104,9 +104,10 @@
 
       <hr />
 
-      <button class="brushButton">Brush</button>
-      <button class="eraserButton">Eraser</button>
-      <button class="undoButton">Undo</button>
+      <!-- Never implemenented brush functionality, leaving these here if I come back to this later -Kyle -->
+      <button class="brushButton d-none">Brush</button>
+      <button class="eraserButton d-none">Eraser</button>
+      <button class="undoButton d-none">Undo</button>
       <h4 class="queriesRemaining">Queries Remaining: <span class="fst-italic">{{ credits_remaining() }}</span></h4>
 
       <!-- Brush Tools -->
@@ -116,7 +117,7 @@
 
           <!-- Filter Dropdown -->
           <div class="row gap-1">
-            <div class="col-sm-3">
+            <div class="col-sm-2">
               <div class="form-floating">
                 <select class="form-select" name="Filters" id="filters">
                   <option selected>Filters</option>
@@ -128,13 +129,7 @@
                 <label for="filters">Choose a filter:</label>
               </div>
             </div>            
-            <div class="col-sm-3">
-              <!-- Brush Size Input -->
-              <label for="brushSize" class="form-label">
-                Brush Size <span id="currentBrushSize">5</span>:
-                <input type="range" class="form-range" id="brushSize" min="1" max="21" step="5" value="5" />
-              </label>
-
+            <div class="col-sm-1">
               <!-- Brush Color Input -->
               <label for="brushColor" class="form-label">Color:
                 <input type="color" class="form-control form-control-color" id="brushColor" value="#000000" /> 
@@ -156,8 +151,6 @@
             </div>
             <div id="secondImageContainer" class="d-none">
               <input type="file" id="secondImageUpload" accept=".png, .jpeg, .jpg" />
-              
-              <a href="#" class="btn btn-primary" id="secondImageButton">Submit For Chroma Key</a>
             </div>
           </div>
         </div>
@@ -354,15 +347,6 @@
       }
     });
     
-    /* ---- DISPLAY CURRENT BRUSH SIZE ---- */
-    const rangeForm = document.querySelector("#brushSize");
-    var currentSizeText = document.querySelector("#currentBrushSize");
-    
-    rangeForm.addEventListener('change', function(event) {
-      var curText = event.target.value;
-      currentSizeText.textContent = curText-1;
-    });
-    
     /* ---- RESET IMAGE BUTTON ---- */
     const resetButton = document.querySelector(".reset");
     
@@ -433,10 +417,12 @@
         return;
       }
       
+      // prompt user for filename
       const filename = prompt("Enter a filename:", "editlab.png");
       console.log("filename: ", filename);
       if (!filename) return; // cancelled
     
+      // export as temporary link
       canvas.toBlob(function(blob) {
         console.log("blob created, size: ", blob.size);
         const url = URL.createObjectURL(blob);
