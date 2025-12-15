@@ -40,7 +40,7 @@
       background-color: #7D84B2;
     }
     /* Eraser & Clear Buttons */
-    .eraserButton, .clearButton {
+    .eraserButton, .undoButton {
       border-radius: 5px;
       margin: 10px;
       border: 0;
@@ -52,10 +52,10 @@
       text-shadow: 1px 1px 1px black;
       background-color: #FF0000;
     }
-    .eraserButton:hover, .clearButton:hover {
+    .eraserButton:hover, .undoButton:hover {
       background-color: #14453D;
     }
-    .eraserButton:active, .clearButton:active { 
+    .eraserButton:active, .undoButton:active { 
       background-color: #7D84B2;
     }
     
@@ -106,7 +106,7 @@
 
       <button class="brushButton">Brush</button>
       <button class="eraserButton">Eraser</button>
-      <button class="clearButton">Clear Brush</button>
+      <button class="undoButton">Undo</button>
       <h4 class="queriesRemaining">Queries Remaining: <span class="fst-italic">{{ credits_remaining() }}</span></h4>
 
       <!-- Brush Tools -->
@@ -219,6 +219,7 @@
       formData.append('file', currentFile); // original image
       formData.append('effect', currentlySelected);
 
+      /* -- TRY TO GET DATA FROM API USING FORM -- */
       try {
         const response = await fetch('/apply-effect', {
           method: 'POST',
@@ -255,6 +256,16 @@
       }
       return; 
     });
+    
+    /* ---- TEMPORARY SINGLE UNDO BUTTON ---- */
+    const undoButton = document.querySelector(".undo");
+
+    undoButton.addEventListener('click', function() {
+      if (previousImageUrl !== null) {
+        updateCanvasWithUrl(previousImageUrl);
+      }
+      return;
+    }); 
 
     /* ---- FUNCTION TO UPDATE CANVAS ---- */
     function updateCanvasWithUrl(url) {
