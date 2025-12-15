@@ -53,3 +53,8 @@ def get_effect():
 
     # send all new data back to browser
     return send_file(output_path, mimetype="image/png")
+
+@app.route('/chroma-key', methods=['POST'])
+def get_key():
+    uploaded = request.files['file']
+    color = request.form['color']

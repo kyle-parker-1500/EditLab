@@ -136,7 +136,7 @@
               </label>
 
               <!-- Brush Color Input -->
-              <label for="brushColor" class="form-label">Brush Color:
+              <label for="brushColor" class="form-label">Color:
                 <input type="color" class="form-control form-control-color" id="brushColor" value="#000000" /> 
               </label>
             </div>
@@ -203,7 +203,6 @@
     });
     
     
-    
     /* Setting background to preview image */
     uploadCanvasButton.addEventListener('click', function(event) {
       if (!currentFile) {
@@ -264,6 +263,32 @@
         console.error("Fetch Error: ", err);
       }
       // to reverse- save current image file
+    });
+    
+    /* ---- PASS DATA TO CHROMA KEY METHODS ---- */
+    const chromaSelect = document.querySelector("#chromaKey");
+    const color = document.querySelector("#brushColor");
+
+    chromaSelect.addEventListener('change', async function(event) {
+      if (!currentFile) {
+        console.warn("No file selected");
+        return;
+      }
+      
+      // get currently selected option
+      const currentlySelected = select.value;
+
+      // get current color
+      const currentColor = color.value;
+
+      // set undo save
+      previousImageUrl = currentFileUrl;
+      
+      // create a form to pass data to backend
+      const formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('color', currentColor);
+
     });
     
     /* ---- DISPLAY CURRENT BRUSH SIZE ---- */
