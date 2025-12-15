@@ -175,6 +175,7 @@
     /* Displaying Preview of Image */
     imageInput.addEventListener('change', function(event) {
       currentFile = event.target.files[0];
+      originalFile = currentFile; // only change here -> for resetting the image
       
       getUrl(currentFile);
 
@@ -248,8 +249,9 @@
     const resetButton = document.querySelector(".reset");
     
     resetButton.addEventListener('click', function() {
-      if (previousImageUrl !== null) {
-        updateCanvasWithUrl(previousImageUrl);
+      if (originalFile !== null) {
+        const tempUrl = getUrl(originalFile);
+        updateCanvasWithUrl(tempUrl);
       }
       return; 
     });
