@@ -58,7 +58,7 @@ def color_distance(pixel, color):
         (pixel[2] - color[2])**2        
     )
 
-def chroma_key_with_img(src, bg, color, threshold):
+def chroma_key_with_img(src, bg, color, threshold=100):
     for x in range(src.width):
        for y in range(src.height):
            cur_pixel = src.getpixel((x,y))

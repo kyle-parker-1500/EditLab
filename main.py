@@ -14,10 +14,14 @@ app = Flask(__name__)
 
 bootstrap = Bootstrap5(app)
 
-# filepath to save uploaded images to
+# filepaths for uploaded images & chroma uploaded images
 dir = Path(__file__).resolve().parent
 upload_folder = dir / "uploads"
+output_dir = dir / "output"
+
+# making dirs if not already exist
 upload_folder.mkdir(exist_ok=True)
+output_dir.mkdir(exist_ok=True)
 
 # route decorator binds a function to a URL
 @app.route('/')
@@ -26,9 +30,6 @@ def home():
         'index.html',
         effect_list=EFFECT_LIST,
         credits_remaining=get_credits_remaining,
-        chroma_key=chroma_key,
-        img_chroma=chroma_key_with_img,
-        reverse_chroma_key=reverse_chroma_key,
         )
 
 @app.route('/apply-effect', methods=['POST'])
@@ -56,29 +57,49 @@ def get_effect():
     return send_file(output_path, mimetype="image/png")
 
 @app.route('/chroma-key', methods=['POST'])
-def get_key():
-    uploaded = request.files['file']
-    color = request.form['color']
+def chroma_route():
+    # get data from flask
+    file1 = request.files.get('file')
+    color = request.form.get('color')
+    mode = request.form.get('mode')
     
-    # ---- save file to uploaded folder on disk ----
-    filename = secure_filename(uploaded.filename or "input.png")
-    uploaded_img_path = upload_folder / filename
-    # save on path
-    uploaded.save(uploaded_img_path)
+    if file1 is None:
+        return "Missing required file", 400  
+    
+    file2 = request.files.get('second_file')
+    
+    # save file1
+    filename1 = secure_filename(file1.filename or "input.png")
+    file1_path = upload_folder / filename1
+    file1.save(file1_path)
+    
+    # save file2 if it exists
+    file2_path = None
+    if file2 is not None:
+        filename2 = secure_filename(file2.filename or "input.png")
+        file2_path = upload_folder / filename2
+        file2.save(file2_path)
+
+    # if color not selected
+    if not color:
+        return "Missing 'color' value.", 400     
     
     # convert color hex to rgb
-    
     # Source - https://stackoverflow.com/a/29643643
     hex = str(color).lstrip('#')
     converted_color = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
 
-    # call chroma_key to chroma the key :)
-    # debug: print("Path of Image: ", uploaded_img_path, "\nand Color: ", converted_color, " of type ", type(converted_color))
-    img_obj = chroma_key(str(uploaded_img_path), converted_color)
-
-    # convert pil image to output path
-    img_obj.save("/output/chroma_result.png", format="PNG") 
+    if mode == "replace_img_chroma":
+        if file2_path is None:
+            return "Second file required for replace_img_chroma", 400
+        img_obj = chroma_key_with_img(str(file1_path), str(file2_path), converted_color)
+    elif mode == "reverse":
+        img_obj = reverse_chroma_key(str(file1_path), converted_color)
+    else:
+        img_obj = chroma_key(str(file1_path), converted_color)
     
-    output_path = dir / "output" / "chroma_result.png"
+    # save resulting image and return data to frontend
+    output_path = output_dir / "chroma_result.png"
+    img_obj.save(output_path, format="PNG") 
     
-    return send_file(output_path, mime_type="image/png")
+    return send_file(output_path, mimetype="image/png")

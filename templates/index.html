@@ -145,8 +145,8 @@
               <div class="form-floating">
                 <select class="form-select" name="Chroma Filters" id="chromaKey">
                   <option selected>Chroma Filters</option>
-                  <option value="chroma_bg_remove">Background Remove Chroma Key</option>
-                  <option value="reverse_chroma_foreground_remove">Foreground Remove Reverse Chroma Key</option>
+                  <option value="default">Background Remove Chroma Key</option>
+                  <option value="reverse">Foreground Remove Reverse Chroma Key</option>
                   <option value="replace_img_chroma">Replace Image Chroma Key</option>
                 </select>                
                 <label for="chromaKey">
@@ -154,10 +154,10 @@
                 </label>
               </div> 
             </div>
-            <div id="invisibility" class="d-none">
+            <div id="secondImageContainer" class="d-none">
               <input type="file" id="secondImageUpload" accept=".png, .jpeg, .jpg" />
               
-              <a href="#" class="btn btn-primary" id="secondUpload">Submit For Chroma Key</a>
+              <a href="#" class="btn btn-primary" id="secondImageButton">Submit For Chroma Key</a>
             </div>
           </div>
         </div>
@@ -276,40 +276,57 @@
     const defaultChroma = document.querySelector("#chroma_bg_remove");
     const reverseChroma = document.querySelector("#reverse_chroma_foreground_remove");
     const replaceImg = document.querySelector("#replace_img_chroma");
-    const getVisibility = document.querySelector("#invisibility");
+    
+    // get second upload if button displayed
+    const getSecondImage = document.querySelector("#secondImageUpload");
+    const secondImageButton = document.querySelector("#secondImageButton");
+    const secondImageContainer = document.querySelector("#secondImageContainer");
 
+    let secondFile = null;
+    
+    getSecondImage.addEventListener('change', function(event) {
+      secondFile = event.target.files[0];
+      if (!secondFile) return;
+      getUrl(secondFile);
+    });
 
     chromaSelect.addEventListener('change', async function(event) {
       if (!currentFile) {
         console.warn("No file selected");
+        alert("No file selected");
         return;
       }
       
       // get currently selected option
-      const currentlySelected = chromaSelect.value;
-
-      // get visibility & change for 2nd uploaded image (to replace background)
-      if (currentlySelected === "replace_img_chroma") {
-        // check upload image visibility
-        if (getVisibility.classList.contains("d-none")) {
-          getVisibility.classList.remove("d-none");
-        }
-      }
-      
-      // get current color
+      const mode = chromaSelect.value;
       const currentColor = color.value;
-
-      // set undo save
+      
+      // for undo to work
       previousImageUrl = currentFileUrl;
       
-      // create a form to pass data to backend
       const formData = new FormData();
       formData.append('file', currentFile);
       formData.append('color', currentColor);
+      formData.append('mode', mode); // index
       
-      /* -- TRY TO GET DATA FROM BACKEND METHODS -- */
+      if (mode == "replace_img_chroma") {
+        // show 2nd img upload section
+        secondImageContainer.classList.remove("d-none");
+
+        // check if file is uploaded
+        if (!secondFile) {
+          console.warn("Waiting for second file...");
+          return;
+        }
+        formData.append('second_file', secondFile); 
+      } else {
+        secondImageContainer.classList.add("d-none");
+      }
+      
+      const endpoint = '/chroma-key';
+
       try {
-        const response = await fetch('/chroma-key', {
+        const response = await fetch(endpoint, {
           method: 'POST',
           body: formData
         });
@@ -319,13 +336,9 @@
           return;
         }
         
-        // read returned binary img data with blob
         const blob = await response.blob();
         getUrl(blob);
-
-        // currentFileUrl is updated in getUrl
-        updateCanvasWithUrl(currentFileUrl); 
-        // read
+        updateCanvasWithUrl(currentFileUrl);
       } catch(err) {
         console.error("Fetch error {Chroma Key}: " + err);
       }
