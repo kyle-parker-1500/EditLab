@@ -14,29 +14,166 @@
         <p class="card-text">Upload an image to apply filters to.</p>
         <input class="m-auto my-2" type="file" id="filter_img" name="filter_img" accept=".png, .jpg, .jpeg" />
 
-        <!-- Show Image Button -->
+ 
         <a href="#" id="showImgBtn" class="btn btn-primary">Submit</a>
 
-        <!-- Test Image Preview -->
+
         <img id="preview" src="" alt="uploaded image" class="img-fluid mt-3" style="display:none;"/>
+        <div id="cropControls" class="mt-4" style="display:none;">
+          <h5>Crop Image</h5>
+        
+          <input type="number" id="left" placeholder="Left (px)" class="form-control my-1">
+          <input type="number" id="top" placeholder="Top (px)" class="form-control my-1">
+          <input type="number" id="right" placeholder="Right (px)" class="form-control my-1">
+          <input type="number" id="bottom" placeholder="Bottom (px)" class="form-control my-1">
+        
+          <button id="cropBtn" class="btn btn-warning mt-2">Apply Crop</button>
+        </div>
+        <div id="rotateControls" class="mt-4" style="display:none;">
+          <h5>Rotate Image</h5>
+          <button class="btn btn-secondary btn-sm" id="rotate90">Rotate 90°</button>
+          <button class="btn btn-secondary btn-sm" id="rotate180">Rotate 180°</button>
+          <button class="btn btn-secondary btn-sm" id="rotate270">Rotate 270°</button>
+        </div>
+        
+      
+        <div id="moveControls" class="mt-4" style="display:none;">
+          <h5>Move Image</h5>
+          <input type="number" id="moveX" placeholder="Move X (px)" class="form-control my-1">
+          <input type="number" id="moveY" placeholder="Move Y (px)" class="form-control my-1">
+          <button class="btn btn-info btn-sm" id="moveBtn">Apply Move</button>
+        </div>
       </div>
     </div>
     <script>
-    document.getElementById('showImgBtn').addEventListener('click', () => {
-      const fileInput = document.getElementById('filter_img');
-      const preview = document.getElementById('preview');
-
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-        };
-        reader.readAsDataURL(fileInput.files[0]);
+      const showImgBtn     = document.getElementById('showImgBtn');
+      const fileInput      = document.getElementById('filter_img');
+      const preview        = document.getElementById('preview');
+      const cropControls   = document.getElementById('cropControls');
+      const cropBtn        = document.getElementById('cropBtn');
+      const rotateControls = document.getElementById('rotateControls');
+      const moveControls   = document.getElementById('moveControls');
+    
+      // show image + reveal tool panels
+      showImgBtn.addEventListener('click', () => {
+        if (fileInput.files && fileInput.files[0]) {
+          const reader = new FileReader();
+    
+          reader.onload = (e) => {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+    
+            if (cropControls)   cropControls.style.display   = 'block';
+            if (rotateControls) rotateControls.style.display = 'block';
+            if (moveControls)   moveControls.style.display   = 'block';
+          };
+    
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+      });
+    
+      // ✅ CROP (already working for you, keep this)
+      if (cropBtn) {
+        cropBtn.addEventListener('click', async () => {
+          if (!fileInput.files[0]) {
+            alert("Upload an image first!");
+            return;
+          }
+    
+          const left   = document.getElementById("left").value   || 0;
+          const top    = document.getElementById("top").value    || 0;
+          const right  = document.getElementById("right").value  || preview.naturalWidth;
+          const bottom = document.getElementById("bottom").value || preview.naturalHeight;
+    
+          const formData = new FormData();
+          formData.append("filter_img", fileInput.files[0]);
+          formData.append("left", left);
+          formData.append("top", top);
+          formData.append("right", right);
+          formData.append("bottom", bottom);
+    
+          const response = await fetch("/crop", {
+            method: "POST",
+            body: formData
+          });
+    
+          if (!response.ok) {
+            alert("Crop failed.");
+            return;
+          }
+    
+          const blob = await response.blob();
+          preview.src = URL.createObjectURL(blob);
+        });
       }
-    });
+    
+      // 🔄 helper for rotate
+      async function applyRotate(angle) {
+        if (!fileInput.files[0]) {
+          alert("Upload an image first!");
+          return;
+        }
+    
+        const formData = new FormData();
+        formData.append("filter_img", fileInput.files[0]);
+        formData.append("angle", angle);
+    
+        const response = await fetch("/rotate", {
+          method: "POST",
+          body: formData
+        });
+    
+        if (!response.ok) {
+          alert("Rotate failed.");
+          return;
+        }
+    
+        const blob = await response.blob();
+        preview.src = URL.createObjectURL(blob);
+      }
+    
+      // 🔄 ROTATE buttons
+      const rotate90  = document.getElementById("rotate90");
+      const rotate180 = document.getElementById("rotate180");
+      const rotate270 = document.getElementById("rotate270");
+    
+      if (rotate90)  rotate90.addEventListener("click",  () => applyRotate(90));
+      if (rotate180) rotate180.addEventListener("click", () => applyRotate(180));
+      if (rotate270) rotate270.addEventListener("click", () => applyRotate(270));
+    
+      // 🎯 MOVE button
+      const moveBtn = document.getElementById("moveBtn");
+      if (moveBtn) {
+        moveBtn.addEventListener("click", async () => {
+          if (!fileInput.files[0]) {
+            alert("Upload an image first!");
+            return;
+          }
+    
+          const x = document.getElementById("moveX").value || 0;
+          const y = document.getElementById("moveY").value || 0;
+    
+          const formData = new FormData();
+          formData.append("filter_img", fileInput.files[0]);
+          formData.append("x", x);
+          formData.append("y", y);
+    
+          const response = await fetch("/move", {
+            method: "POST",
+            body: formData
+          });
+    
+          if (!response.ok) {
+            alert("Move failed.");
+            return;
+          }
+    
+          const blob = await response.blob();
+          preview.src = URL.createObjectURL(blob);
+        });
+      }
     </script>
+    
     {{ bootstrap.load_js() }}
   </body>
 </html>
