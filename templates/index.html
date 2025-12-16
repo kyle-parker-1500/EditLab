@@ -352,7 +352,7 @@
     
     resetButton.addEventListener('click', function() {
       if (originalFile !== null) {
-        const tempUrl = getUrl(originalFile);
+        const tempUrl = URL.createObjectURL(originalFile);
         updateCanvasWithUrl(tempUrl);
       }
       return; 
@@ -424,13 +424,12 @@
     
       // export as temporary link
       canvas.toBlob(function(blob) {
-        console.log("blob created, size: ", blob.size);
         const url = URL.createObjectURL(blob);
-        console.log("download url: ", url);
         const link = document.createElement('a');
         link.href = url;
         link.download = filename;
 
+        // simulated actions
         document.body.appendChild(link);
         link.click();
 
